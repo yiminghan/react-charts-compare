@@ -1,103 +1,86 @@
-import Image from "next/image";
+"use client";
+
+import { useMemo, useState } from "react";
+import PieChartRecharts from "./charts/rechart/pie";
+import { sampleData } from "./charts/sample-data";
+import PieChartChartJS from "./charts/react-chartjs2/pie";
+import PieChartNivoCanvas from "./charts/nivo/pie-canvas";
+import PieChartNivoSVG from "./charts/nivo/pie-svg";
+import PieChartBizcharts from "./charts/bizcharts/pie";
+
+enum ChartType {
+  RECHART = "rechart",
+  CHARTJS = "chartjs",
+  NIVO_CANVAS = "nivo-canvas",
+  NIVO_SVG = "nivo-svg",
+  BIZCHART = "bizchart",
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [dataSize, setDataSize] = useState(10);
+  const [chartType, setChartType] = useState<ChartType>(ChartType.RECHART);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const data = useMemo(() => sampleData(dataSize), [dataSize]);
+
+  return (
+    <div className="grid grid-rows-[20px_1fr_20px] min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+      <main className="flex flex-col gap-[32px] row-start-2  sm:items-start">
+        <h1 className="text-4xl font-bold">React Charts Performance</h1>
+        <div className="flex flex-col items-center gap-4 bg-gray-50 px-4 py-3 rounded-lg shadow-sm">
+          <div className="flex gap-2">
+            {Object.values(ChartType).map((type) => (
+              <button
+                key={type}
+                className={`px-3 py-1.5 rounded-md border shadow-sm transition-colors ${
+                  chartType === type
+                    ? "bg-blue-500 text-white border-blue-600"
+                    : "bg-white hover:bg-gray-100 text-gray-800 border-gray-200"
+                }`}
+                onClick={() => setChartType(type)}
+              >
+                {type === ChartType.RECHART && "Recharts"}
+                {type === ChartType.CHARTJS && "Chart.js"}
+                {type === ChartType.NIVO_CANVAS && "Nivo (Canvas)"}
+                {type === ChartType.NIVO_SVG && "Nivo (SVG)"}
+                {type === ChartType.BIZCHART && "BizCharts"}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-row items-center gap-2">
+            <input
+              type="text"
+              value={`${dataSize} Items`}
+              readOnly
+              className="text-gray-700 font-medium bg-transparent outline-none"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <div className="flex gap-2">
+              <button
+                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold px-3 py-1.5 rounded-md border border-gray-200 shadow-sm transition-colors"
+                onClick={() => setDataSize(Math.max(0, dataSize - 5))}
+              >
+                -
+              </button>
+              <button
+                className="bg-white hover:bg-gray-100 text-gray-800 font-semibold px-3 py-1.5 rounded-md border border-gray-200 shadow-sm transition-colors"
+                onClick={() => setDataSize(dataSize + 5)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="w-full h-full">
+          {chartType === ChartType.RECHART && <PieChartRecharts data={data} />}
+          {chartType === ChartType.CHARTJS && <PieChartChartJS data={data} />}
+          {chartType === ChartType.NIVO_CANVAS && (
+            <PieChartNivoCanvas data={data} />
+          )}
+          {chartType === ChartType.NIVO_SVG && <PieChartNivoSVG data={data} />}
+          {chartType === ChartType.BIZCHART && (
+            <PieChartBizcharts data={data} />
+          )}
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
     </div>
   );
 }
